@@ -211,7 +211,7 @@ html, body {
 /* HERO
 ================================================== */
 .hero { 
-    background: url(../img/hero.jpg) no-repeat center / cover; 
+    background: url(../img/hero.webp) no-repeat center / cover; 
     height: 100%;
     width: 100%;
     min-height: 700px;
@@ -320,7 +320,7 @@ html, body {
 
 .section-services:before {
     content: '';
-    background: url(../img/services-bg.jpg) no-repeat fixed center / cover;
+    background: url(../img/services-bg.webp) no-repeat fixed center / cover;
     width: 100%;
     height: 400px; 
     position: absolute;
@@ -486,7 +486,7 @@ html, body {
 
 /* Section: Counters */
 .section-counters {
-    background: url(../img/counters-bg.jpg) no-repeat fixed center / cover;
+    background: url(../img/counters-bg.webp) no-repeat fixed center / cover;
     width: 100%;
     padding: 100px 0;
     position: relative;
