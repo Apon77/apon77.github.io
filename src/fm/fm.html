@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>FM Calculation</title>
+	<link rel="icon" type="image/x-icon" href="fm.png">
+
+<style>
+::placeholder {
+  color: lightcoral;
+  opacity: 1;
+}
+::-ms-input-placeholder { /* Edge 12-18 */
+  color: lightcoral;
+}
+</style>
+
+</head>
+
+<body>
+<div><strong>Sieve Analysis Of Fine Aggregate And Fineness Modulus</strong></div>
+<div><span>Total Dry Weight (gm)=
+<span><input type="number" id=total_weight placeholder="286" value=286></div>
+
+<table border="1" style="border-collapse: collapse;" >
+
+  <tr>
+    <th style="width: 70px">Sieve No</th>
+    <th style="width: 70px">Sieve Size</th>
+    <th  style="width: 70px">Dry Weight Retained (gm)</th>
+    <th style="width: 140px">Cumulative Weight Retained (gm)</th>
+    <th style="width: 140px">Cumulative % Weight Retained</th>
+    <th style="width: 140px">Cumulative % Weight Passing</th>
+    <th style="width: 140px">BWDB % passing limit</th>
+    <th style="width: 140px">Remarks</th>    
+  </tr>
+
+  <tr>
+    <td>3/8"</td>
+    <td>10 mm</td>
+    <td><input type="number" id=ten_mm placeholder="0" value=0></td>
+    <td> <div id=cum_ten_mm></div></td>
+    <td> <div id=pct_cum_ten_mm></div></td>
+    <td> <div id=pct_pass_cum_ten_mm></div></td>
+    <td><div id=bwdb_ten_mm></div></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>#4</td>
+    <td>4.75 mm</td>
+    <td><input type="number"  id=four_mm placeholder="4" value=4></td>
+    <td> <div id=cum_four_mm></div></td>
+    <td> <div id=pct_cum_four_mm></div></td>
+    <td> <div id=pct_pass_cum_four_mm></div></td>
+    <td><div id=bwdb_four_mm></div></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>#8</td>
+    <td>2.36 mm</td>
+    <td><input type="number" id=two_mm placeholder="10" value=10></td>
+    <td> <div id=cum_two_mm></div></td>
+    <td> <div id=pct_cum_two_mm></div></td>
+    <td> <div id=pct_pass_cum_two_mm></div></td>
+    <td><div id=bwdb_two_mm></div></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>#16</td>
+    <td>1.18 mm</td>
+    <td><input type="number" id=one_mm placeholder="22" value=22></td>
+    <td> <div id=cum_one_mm></div></td>
+    <td> <div id=pct_cum_one_mm></div></td>
+    <td> <div id=pct_pass_cum_one_mm></div></td>
+    <td><div id=bwdb_one_mm></div></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>#30</td>
+    <td>0.6 mm</td>
+    <td><input type="number" id=point_six_mm placeholder="30" value=30></td>
+    <td> <div id=cum_point_six_mm></div></td>
+    <td> <div id=pct_cum_point_six_mm></div></td>
+    <td> <div id=pct_pass_cum_point_six_mm></div></td>
+    <td><div id=bwdb_point_six_mm></div></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>#50</td>
+    <td>0.3 mm</td>
+    <td><input type="number" id=point_three_mm placeholder="24" value=24></td>
+    <td> <div id=cum_point_three_mm></div></td>
+    <td> <div id=pct_cum_point_three_mm></div></td>
+    <td> <div id=pct_pass_cum_point_three_mm></div></td>
+    <td><div id=bwdb_point_three_mm></div></td>
+    <td></td>
+  </tr>
+
+   <tr>
+    <td>#100</td>
+    <td>0.15 mm</td>
+    <td><input type="number" id=point_one_five_mm placeholder="185" value=185></td>
+    <td> <div id=cum_point_one_five_mm></div></td>
+    <td> <div id=pct_cum_point_one_five_mm></div></td>
+    <td> <div id=pct_pass_cum_point_one_five_mm></div></td>
+    <td><div id=bwdb_point_one_five_mm></div></td>
+    <td></td>
+  </tr>
+
+   <tr>
+    <td><#100</td>
+    <td><0.15 mm</td>
+    <td><input type="number" id=less_point_one_five_mm placeholder="11" value=11></td>
+    <td> <div id=cum_less_point_one_five_mm></div></td>
+    <td> <div id=pct_cum_less_point_one_five_mm></div></td>
+    <td> <div id=pct_pass_cum_less_point_one_five_mm></div></td>
+    <td><div id=bwdb_less_point_one_five_mm></div></td>
+    <td bgcolor="lightcoral">Must be filled</td>
+  </tr>
+
+</table>
+
+<button onclick="calculateFM()">Calculate FM</button>
+<div id=fm_div></div>
+
+<script>
+function calculateFM() {
+  var total_weight = parseFloat(document.getElementById("total_weight").value);
+  var ten = parseFloat(document.getElementById("ten_mm").value);
+  var four = parseFloat(document.getElementById("four_mm").value);
+  var two = parseFloat(document.getElementById("two_mm").value);
+  var one = parseFloat(document.getElementById("one_mm").value);
+  var point_six = parseFloat(document.getElementById("point_six_mm").value);
+  var point_three = parseFloat(document.getElementById("point_three_mm").value);
+  var point_one_five = parseFloat(document.getElementById("point_one_five_mm").value);
+  var less_point_one_five = parseFloat(document.getElementById("less_point_one_five_mm").value);
+
+  document.getElementById("cum_ten_mm").innerHTML = parseFloat(ten).toFixed(2);
+  document.getElementById("cum_four_mm").innerHTML = parseFloat(ten+four).toFixed(2);
+  document.getElementById("cum_two_mm").innerHTML = parseFloat(ten+four+two).toFixed(2);
+  document.getElementById("cum_one_mm").innerHTML = parseFloat(ten+four+two+one).toFixed(2);
+  document.getElementById("cum_point_six_mm").innerHTML = parseFloat(ten+four+two+one+point_six).toFixed(2);
+  document.getElementById("cum_point_three_mm").innerHTML = parseFloat(ten+four+two+one+point_six+point_three).toFixed(2);
+  document.getElementById("cum_point_one_five_mm").innerHTML = parseFloat(ten+four+two+one+point_six+point_three+point_one_five).toFixed(2);
+  document.getElementById("cum_less_point_one_five_mm").innerHTML = parseFloat(ten+four+two+one+point_six+point_three+point_one_five+less_point_one_five).toFixed(2);
+
+  document.getElementById("pct_cum_ten_mm").innerHTML = parseFloat((ten)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_four_mm").innerHTML = parseFloat((ten+four)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_two_mm").innerHTML = parseFloat((ten+four+two)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_one_mm").innerHTML = parseFloat((ten+four+two+one)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_point_six_mm").innerHTML = parseFloat((ten+four+two+one+point_six)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_point_three_mm").innerHTML = parseFloat((ten+four+two+one+point_six+point_three)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_point_one_five_mm").innerHTML = parseFloat((ten+four+two+one+point_six+point_three+point_one_five)/total_weight*100).toFixed(2);
+  document.getElementById("pct_cum_less_point_one_five_mm").innerHTML = parseFloat((ten+four+two+one+point_six+point_three+point_one_five+less_point_one_five)/total_weight*100).toFixed(2);
+
+  document.getElementById("pct_pass_cum_ten_mm").innerHTML = parseFloat(100-(ten)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_four_mm").innerHTML = parseFloat(100-(ten+four)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_two_mm").innerHTML = parseFloat(100-(ten+four+two)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_one_mm").innerHTML = parseFloat(100-(ten+four+two+one)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_point_six_mm").innerHTML = parseFloat(100-(ten+four+two+one+point_six)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_point_three_mm").innerHTML = parseFloat(100-(ten+four+two+one+point_six+point_three)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_point_one_five_mm").innerHTML = parseFloat(100-(ten+four+two+one+point_six+point_three+point_one_five)/total_weight*100).toFixed(2);
+  document.getElementById("pct_pass_cum_less_point_one_five_mm").innerHTML = parseFloat(100-(ten+four+two+one+point_six+point_three+point_one_five+less_point_one_five)/total_weight*100).toFixed(2);
+
+  var fm = parseFloat((ten/total_weight*100 + (ten+four)/total_weight*100 + (ten+four+two)/total_weight*100 + (ten+four+two+one)/total_weight*100 + (ten+four+two+one+point_six)/total_weight*100 + (ten+four+two+one+point_six+point_three)/total_weight*100 + (ten+four+two+one+point_six+point_three+point_one_five)/total_weight*100)/100).toFixed(2);
+
+  document.getElementById("fm_div").innerHTML = "<strong style='color:blue'>Fineness Modulus (FM) of the sample fine aggregate is = " + fm + "</strong>";
+
+
+if(fm>=1.5 && fm<=2.8) {
+	  document.getElementById("bwdb_four_mm").innerHTML = "95-100"
+	  document.getElementById("bwdb_two_mm").innerHTML = "90-100"
+	  document.getElementById("bwdb_one_mm").innerHTML = "70-95"
+	  document.getElementById("bwdb_point_six_mm").innerHTML = "40-80"
+	  document.getElementById("bwdb_point_three_mm").innerHTML = "10-50"
+	  document.getElementById("bwdb_point_one_five_mm").innerHTML = "0-20"
+	  document.getElementById("bwdb_less_point_one_five_mm").innerHTML = "0-5"
+}
+
+else if(fm>=1 && fm<1.5){
+	  document.getElementById("bwdb_four_mm").innerHTML = "100"
+	  document.getElementById("bwdb_two_mm").innerHTML = "100"
+	  document.getElementById("bwdb_one_mm").innerHTML = "97-100"
+	  document.getElementById("bwdb_point_six_mm").innerHTML = "85-95"
+	  document.getElementById("bwdb_point_three_mm").innerHTML = "50-70"
+	  document.getElementById("bwdb_point_one_five_mm").innerHTML = "20-35"
+	  document.getElementById("bwdb_less_point_one_five_mm").innerHTML = "0-5"
+}
+else if(fm>=0.8 && fm<1){
+	  document.getElementById("bwdb_four_mm").innerHTML = "100"
+	  document.getElementById("bwdb_two_mm").innerHTML = "100"
+	  document.getElementById("bwdb_one_mm").innerHTML = "100"
+	  document.getElementById("bwdb_point_six_mm").innerHTML = "95-100"
+	  document.getElementById("bwdb_point_three_mm").innerHTML = "70-80"
+	  document.getElementById("bwdb_point_one_five_mm").innerHTML = "35-40"
+	  document.getElementById("bwdb_less_point_one_five_mm").innerHTML = "0-5"
+}
+else if(fm>=0.5 && fm<0.8){
+	  document.getElementById("bwdb_four_mm").innerHTML = "100"
+	  document.getElementById("bwdb_two_mm").innerHTML = "100"
+	  document.getElementById("bwdb_one_mm").innerHTML = "100"
+	  document.getElementById("bwdb_point_six_mm").innerHTML = "100"
+	  document.getElementById("bwdb_point_three_mm").innerHTML = "80-90"
+	  document.getElementById("bwdb_point_one_five_mm").innerHTML = "40-60"
+	  document.getElementById("bwdb_less_point_one_five_mm").innerHTML = "0-5"
+}
+else {
+}
+
+}
+</script>
+
+</body>
+</html>
