@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>BMI Calculation</title>
+	<link rel="icon" type="image/x-icon" href="bmi.png">
+
+<style>
+::placeholder {
+  color: lightcoral;
+  opacity: 1;
+}
+::-ms-input-placeholder { /* Edge 12-18 */
+  color: lightcoral;
+}
+</style>
+
+</head>
+
+<body>
+<div style="width: max-content;"><strong>BMI Calculation for age above 18 years old.</strong></div>
+<div>
+<span>Height=
+  <span><input type="number" id=ft placeholder="5" value=5><span> ft</span>
+  <span><input type="number" id=inch placeholder="4" value=4><span> in</span>
+</div>
+<div><span>Weight=
+  <span><input type="number" id=kg placeholder="63.2" value=63.2> kg</div>
+
+<button onclick="calculateBMI()">Calculate BMI</button>
+<div style="width: max-content;" id=bmi></div>
+<div style="width: max-content;" id=healthy_bmi></div>
+<div style="width: max-content;" id=avg_healthy_bmi></div>
+
+<script>
+
+function calculateBMI() {
+  var ft = parseFloat(document.getElementById("ft").value);
+  var inch = parseFloat(document.getElementById("inch").value);
+  var kg = parseFloat(document.getElementById("kg").value);
+  var height_in_m = (ft + inch/12)*0.3048;
+  var bmi = parseFloat(kg/height_in_m**2).toFixed(2);
+  // Healthy BMI range: 18.5 kg/m2 - 24.9 kg/m2
+  var healthy_bmi_low = parseFloat(18.5 * height_in_m**2).toFixed(2);
+  var healthy_bmi_high = parseFloat(24.9 * height_in_m**2).toFixed(2);
+  var bmi_text = `<strong style='color:blue'>BMI of the person is = ${bmi} kg/m<sup>2</sup></strong>`;
+  var healthy_bmi_text = `<strong style='color:black'>Healthy weight of the person is = ${healthy_bmi_low} kg - ${healthy_bmi_high} kg (18.5 kg/m<sup>2</sup> - 24.9 kg/m<sup>2</sup>)</strong>`;
+  var avg_healthy_bmi = parseFloat((parseFloat(healthy_bmi_low) + parseFloat(healthy_bmi_high))/2).toFixed(2);
+  document.getElementById("bmi").innerHTML = bmi_text;
+  document.getElementById("healthy_bmi").innerHTML = healthy_bmi_text;
+  // document.getElementById("avg_healthy_bmi").innerHTML = (healthy_bmi_low + healthy_bmi_high)/2;
+  document.getElementById("avg_healthy_bmi").innerHTML = `<strong style='color:green'>Average healthy weight of the person is = ${avg_healthy_bmi} kg</strong>`;
+
+}
+
+</script>
+
+</body>
+</html>

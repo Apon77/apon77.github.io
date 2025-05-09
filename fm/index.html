@@ -20,8 +20,7 @@
 
 <body>
 <div style="width: max-content;"><strong>Sieve Analysis Of Fine Aggregate And Fineness Modulus</strong></div>
-<div><span>Total Dry Weight (gm)=
-<span><input type="number" id=total_weight placeholder="286" value=286></div>
+<div><span>Total Dry Weight (gm)=<span><input type="number" id=total_weight placeholder="286" value=286></div>
 
 <table border="1" style="border-collapse: collapse;" >
 
@@ -215,6 +214,41 @@ else {
 
 }
 </script>
+
+<script type="text/javascript">
+  
+var created_at = new Date().toLocaleString();
+console.log(created_at);
+
+
+const xhr = new XMLHttpRequest();
+xhr.open('GET', 'http://api.ipify.org');
+xhr.onload = function(){
+  var ip = xhr.responseText
+  console.log(ip)
+}
+xhr.send();
+
+const xhr2 = new XMLHttpRequest();
+xhr2.open('POST', 'https://zaclllmdrkoxgmrbseeu.supabase.co/rest/v1/fm');
+xhr2.onload = function(){
+  var ip = xhr2.responseText
+  
+}
+xhr2.setRequestHeader('apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphY2xsbG1kcmtveGdtcmJzZWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyODMyMDgsImV4cCI6MjA2MTg1OTIwOH0.4vp7t3qLqNnn986sMFgm_DYnzj9ADlYopliEd4ZvwTk');
+xhr2.setRequestHeader('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphY2xsbG1kcmtveGdtcmJzZWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyODMyMDgsImV4cCI6MjA2MTg1OTIwOH0.4vp7t3qLqNnn986sMFgm_DYnzj9ADlYopliEd4ZvwTk');
+xhr2.setRequestHeader('Content-Type', 'application/json');
+xhr2.setRequestHeader('Prefer', 'return=minimal');
+let data = `{
+  "created_at": '78912',
+  "ip": "3.3.3.3",
+}`;
+
+xhr2.send(data);
+
+</script>
+
+
 
 </body>
 </html>
