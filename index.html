@@ -1,49 +1,94 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>K</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="v1/assets/img/favicon.webp"
-    />
-    <script src="main.js"></script>
-  </head>
-  <body>
-    <div class="root">
-      <div class="space"></div>
-      <div class="project">
-        Project 1:
-        <a href="https://apon77.github.io/Dicee-Challenge">Dicee-Challenge</a>
-      </div>
-      <div class="project">
-        Project 2: <a href="https://apon77.github.io/tuesday">tuesday</a>
-      </div>
-      <div class="project">
-        Project 3: <a href="fm">FM Calculation</a>
-      </div>
-      <div class="project">
-        Project 4: <a href="bmi">BMI Calculation</a>
-      </div>
-      <div class="project">
-        Project 5: <a href="bacl">BACL</a>
-      </div>
-      <div class="project">
-        Project 6: <a href="iptv-filter">iptv-filter</a>
-      </div>
-      <div class="version">
-        Older versions:
-        <a href="v1/index.html">v1</a>
-      </div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apon | Project Portfolio</title>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-15455WVHXK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-15455WVHXK');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="16x16" href="v1/assets/img/favicon.webp" />
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-bg { background: radial-gradient(circle at top right, #1e293b, #020617); }
+        .project-card:hover { border-color: #3b82f6; transform: translateY(-5px); transition: all 0.3s ease; }
+        @keyframes pulse-slow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+        .animate-pulse-slow { animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="gradient-bg text-slate-200 min-h-screen">
+
+    <div class="fixed top-20 left-20 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px] animate-pulse-slow"></div>
+    <div class="fixed bottom-20 right-20 w-96 h-96 bg-emerald-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+
+    <div class="container mx-auto px-6 py-12 max-w-5xl relative z-10">
+        
+        <header class="text-center mb-20">
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-4">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">APON'S</span> PROJECTS
+            </h1>
+            <p class="text-slate-400 text-lg">A collection of my web applications and experiments.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="glass p-6 rounded-3xl project-card group">
+                <span class="text-xs font-bold text-blue-500 mb-2 block uppercase tracking-widest">Project 01</span>
+                <h3 class="text-xl font-bold mb-4">Dicee Challenge</h3>
+                <a href="https://apon77.github.io/Dicee-Challenge" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+            </div>
+
+            <div class="glass p-6 rounded-3xl project-card group">
+                <span class="text-xs font-bold text-emerald-500 mb-2 block uppercase tracking-widest">Project 02</span>
+                <h3 class="text-xl font-bold mb-4">Tuesday</h3>
+                <a href="https://apon77.github.io/tuesday" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+            </div>
+
+            <div class="glass p-6 rounded-3xl project-card group">
+                <span class="text-xs font-bold text-purple-500 mb-2 block uppercase tracking-widest">Project 03</span>
+                <h3 class="text-xl font-bold mb-4">FM Calculation</h3>
+                <a href="fm" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+            </div>
+
+            <div class="glass p-6 rounded-3xl project-card group">
+                <span class="text-xs font-bold text-orange-500 mb-2 block uppercase tracking-widest">Project 04</span>
+                <h3 class="text-xl font-bold mb-4">BMI Calculation</h3>
+                <a href="bmi" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+            </div>
+
+            <div class="glass p-6 rounded-3xl project-card group">
+                <span class="text-xs font-bold text-pink-500 mb-2 block uppercase tracking-widest">Project 05</span>
+                <h3 class="text-xl font-bold mb-4">BACL</h3>
+                <a href="bacl" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+            </div>
+
+            <div class="glass p-6 rounded-3xl project-card group">
+                <span class="text-xs font-bold text-cyan-500 mb-2 block uppercase tracking-widest">Project 06</span>
+                <h3 class="text-xl font-bold mb-4">IPTV Filter</h3>
+                <a href="iptv-filter" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+            </div>
+
+        </div>
+
+        <footer class="mt-24 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-sm italic">"Keep building, keep learning."</p>
+            <div class="glass px-6 py-3 rounded-2xl flex items-center gap-4">
+                <span class="text-xs text-slate-400 uppercase tracking-widest">Archive</span>
+                <a href="v1/index.html" class="text-sm font-bold text-blue-400 hover:text-white transition">Older Version (v1)</a>
+            </div>
+        </footer>
     </div>
-  </body>
+
+</body>
 </html>
-
-
-
-
