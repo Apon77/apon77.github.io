@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apon's Bookmarks</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #1a1b26; color: #c0caf5; display: flex; flex-direction: column; height: 100vh; }
+    
+    /* Top Header */
+    header { background: #16161e; border-bottom: 1px solid #292e42; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; color: #7aa2f7; white-space: nowrap; }
+    .search-group { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 620px; min-width: 240px; }
+    .search-bar { flex: 1; position: relative; }
+    .search-bar input { width: 100%; padding: 8px 14px; border-radius: 20px; border: 1px solid #414868; background: #24283b; color: #fff; font-size: 14px; outline: none; }
+    .search-bar input:focus { border-color: #7aa2f7; }
+    select { padding: 8px 10px; border-radius: 6px; border: 1px solid #414868; background: #24283b; color: #c0caf5; font-size: 13px; outline: none; cursor: pointer; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Buttons & Inputs */
+    button { padding: 8px 12px; border: none; border-radius: 6px; background: #7aa2f7; color: #1a1b26; font-weight: 600; cursor: pointer; font-size: 13px; white-space: nowrap; }
+    button:hover { background: #89b4fa; }
+    .btn-secondary { background: #292e42; color: #c0caf5; }
+    .btn-secondary:hover { background: #3b4261; }
+    .icon-btn { background: transparent; color: #a9b1d6; padding: 5px 8px; font-size: 13px; border-radius: 4px; }
+    .icon-btn:hover { background: #3b4261; color: #fff; }
+    .del-btn { background: transparent; color: #f7768e; padding: 5px 8px; font-size: 13px; border-radius: 4px; }
+    .del-btn:hover { background: rgba(247, 118, 142, 0.15); }
+
+    /* Main Layout: Sidebar + Bookmark List */
+    .layout { display: flex; flex: 1; overflow: hidden; }
+    aside { width: 230px; background: #16161e; border-right: 1px solid #292e42; padding: 14px 10px; overflow-y: auto; flex-shrink: 0; }
+    .sidebar-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #565f89; padding: 4px 12px 6px; font-weight: 600; }
+    .sidebar-divider { height: 1px; background: #292e42; margin: 10px 6px; }
+    .folder-item { padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: space-between; color: #a9b1d6; margin-bottom: 4px; }
+    .folder-item:hover { background: #24283b; color: #fff; }
+    .folder-item.active { background: #292e42; color: #7aa2f7; font-weight: 600; }
+    .folder-count { font-size: 11px; color: #565f89; }
+
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 10px; }
+    .sidebar-tag { font-size: 12px; padding: 3px 9px; border-radius: 12px; background: #24283b; color: #bb9af7; border: 1px solid #292e42; cursor: pointer; }
+    .sidebar-tag:hover { border-color: #bb9af7; color: #fff; }
+    .sidebar-tag.active { background: #bb9af7; color: #1a1b26; font-weight: 600; border-color: #bb9af7; }
+
+    main { flex: 1; padding: 20px; overflow-y: auto; }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* Toolbar above list */
+    .list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    #status { font-size: 12px; color: #9ece6a; }
+
+    /* Admin Add Bookmark Bar */
+    .add-box { background: #24283b; border: 1px solid #414868; border-radius: 8px; padding: 14px; margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .add-box input { flex: 1; min-width: 140px; padding: 8px 10px; border-radius: 6px; border: 1px solid #414868; background: #1a1b26; color: #fff; font-size: 13px; }
+
+    /* Bookmark List Card */
+    .bookmark-list { background: #24283b; border: 1px solid #292e42; border-radius: 8px; overflow: hidden; }
+    .bm-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid #292e42; gap: 10px; }
+    .bm-row:last-child { border-bottom: none; }
+    .bm-row:hover { background: #292e42; }
+    .bm-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; text-decoration: none; color: inherit; }
+    .bm-icon-wrap { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .bm-icon { width: 18px; height: 18px; border-radius: 3px; background: #1a1b26; }
+    .bm-fallback-icon { font-size: 16px; line-height: 1; display: none; }
+    .bm-text { min-width: 0; flex: 1; }
+    .bm-title { font-size: 14px; font-weight: 500; color: #c0caf5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bm-row:hover .bm-title { color: #7aa2f7; }
+    .bm-url { font-size: 12px; color: #565f89; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .bm-tags-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .bm-tag-pill { font-size: 11px; background: #1a1b26; color: #bb9af7; padding: 1px 7px; border-radius: 10px; border: 1px solid #292e42; cursor: pointer; }
+    .bm-tag-pill:hover { border-color: #bb9af7; color: #fff; }
+    .bm-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .bm-clicks { font-size: 11px; color: #7dcfff; background: #1a1b26; padding: 2px 7px; border-radius: 10px; border: 1px solid #292e42; white-space: nowrap; }
+    .bm-folder-badge { font-size: 11px; background: #1a1b26; color: #9ece6a; padding: 2px 8px; border-radius: 12px; border: 1px solid #292e42; white-space: nowrap; }
+
+    /* Modals */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal { background: #24283b; border: 1px solid #414868; border-radius: 8px; padding: 20px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
+    .modal input { padding: 10px; border-radius: 6px; border: 1px solid #414868; background: #1a1b26; color: #fff; font-size: 14px; width: 100%; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 720px) {
+      .layout { flex-direction: column; }
+      aside { width: 100%; border-right: none; border-bottom: 1px solid #292e42; display: flex; align-items: center; gap: 6px; padding: 8px 12px; overflow-x: auto; }
+      .sidebar-divider, .sidebar-section-label { display: none; }
+      .folder-item { margin-bottom: 0; white-space: nowrap; }
+      .tag-cloud { flex-wrap: nowrap; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>★</span> Bookmarks
+    </div>
+    <div class="search-group">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search title, URL, folder, or #tag..." oninput="renderBookmarks()" />
+      </div>
+      <select id="sortSelect" onchange="renderBookmarks()" title="Sort bookmarks">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="az">Title (A–Z)</option>
+        <option value="popular">Most Visited</option>
+      </select>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="exportBookmarksJSON()" title="Download JSON backup">Export JSON</button>
+      <button class="btn-secondary" onclick="exportBookmarksHTML()" title="Download Chrome HTML format">Export HTML</button>
+      <button id="importBtn" class="btn-secondary hidden" onclick="document.getElementById('importFile').click()">Import</button>
+      <input type="file" id="importFile" class="hidden" accept=".json,.html,.htm" onchange="handleImportFile(event)" />
+      <button id="openLoginBtn" onclick="toggleModal('loginModal', true)">Admin Login</button>
+      <button id="logoutBtn" class="btn-secondary hidden" onclick="signOut()">Logout</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="folderSidebar">
+      <!-- Folders & Tags rendered dynamically -->
+    </aside>
+
+    <main>
+      <div class="container">
+        <div class="list-toolbar">
+          <div id="status">Loading bookmarks...</div>
+          <button id="openAllBtn" class="btn-secondary hidden" onclick="openAllInTabs()">↗ Open All in Tabs</button>
+        </div>
+
+        <!-- Add Bookmark Form (Visible ONLY to logged-in user) -->
+        <div id="adminAddBox" class="add-box hidden">
+          <input type="text" id="titleInput" placeholder="Title (optional - auto-fetched)" />
+          <input type="url" id="urlInput" placeholder="URL (https://...)" />
+          <input type="text" id="folderInput" list="folderSuggestions" placeholder="Folder (e.g. Dev)" />
+          <input type="text" id="tagsInput" placeholder="Tags (comma-separated, e.g. ai, docs)" />
+          <datalist id="folderSuggestions"></datalist>
+          <button onclick="addBookmark()">+ Add</button>
+        </div>
+
+        <!-- Public Bookmark List (Visible to everyone) -->
+        <div id="bookmarkList" class="bookmark-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal-backdrop hidden" onclick="if(event.target===this) toggleModal('loginModal', false)">
+    <div class="modal">
+      <h3 style="margin:0; font-size:16px;">Admin Sign In</h3>
+      <p style="margin:0; font-size:12px; color:#a9b1d6;">Sign in to add, edit, import, or delete bookmarks.</p>
+      <input type="email" id="emailInput" placeholder="Email" />
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="toggleModal('loginModal', false)">Cancel</button>
+        <button onclick="signIn()">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Bookmark Modal -->
+  <div id="editModal" class="modal-backdrop hidden" onclick="if(event.target===this) toggleModal('editModal', false)">
+    <div class="modal">
+      <h3 style="margin:0; font-size:16px;">Edit Bookmark</h3>
+      <input type="hidden" id="editIdInput" />
+      <input type="text" id="editTitleInput" placeholder="Title (optional - auto-fetched)" />
+      <input type="url" id="editUrlInput" placeholder="URL (https://...)" />
+      <input type="text" id="editFolderInput" list="folderSuggestions" placeholder="Folder" />
+      <input type="text" id="editTagsInput" placeholder="Tags (comma-separated)" />
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="toggleModal('editModal', false)">Cancel</button>
+        <button onclick="saveEditBookmark()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // SUPABASE CONFIGURATION VARIABLES
+    // ==========================================
+    const SUPABASE_URL = 'https://lznyebuqxnkjzgcaqgfk.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Eh9A0llk6htNFRIDpiV7bQ_7Y_nIFxQ';
+    // ==========================================
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const statusDiv = document.getElementById('status');
+    const adminAddBox = document.getElementById('adminAddBox');
+    const importBtn = document.getElementById('importBtn');
+    const openLoginBtn = document.getElementById('openLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const openAllBtn = document.getElementById('openAllBtn');
+    const bookmarkList = document.getElementById('bookmarkList');
+    const folderSidebar = document.getElementById('folderSidebar');
+    const folderSuggestions = document.getElementById('folderSuggestions');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+
+    let currentUser = null;
+    let allBookmarks = [];
+    let currentFilteredBookmarks = [];
+    let selectedFolder = 'All';
+    let selectedTag = '';
+
+    function getActiveClicks(bm) {
+      return currentUser ? (bm.user_click_count || 0) : (bm.public_click_count || 0);
+    }
+
+    function parseTags(raw) {
+      if (Array.isArray(raw)) {
+        return [...new Set(raw.map(t => String(t).trim().toLowerCase().replace(/^#/, '')).filter(Boolean))];
+      }
+      if (typeof raw === 'string') {
+        return [...new Set(raw.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(Boolean))];
+      }
+      return [];
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function setStatus(msg, isError = false) {
+      statusDiv.style.color = isError ? '#f7768e' : '#9ece6a';
+      statusDiv.innerText = msg;
+    }
+
+    function toggleModal(modalId, show) {
+      const el = document.getElementById(modalId);
+      el.classList.toggle('hidden', !show);
+      if (show && modalId === 'loginModal') document.getElementById('emailInput').focus();
+      if (show && modalId === 'editModal') document.getElementById('editTitleInput').focus();
+    }
+
+    function getFaviconUrl(url) {
+      try {
+        const domain = new URL(url).hostname;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+      } catch {
+        return '';
+      }
+    }
+
+    function handleFaviconLoad(img) {
+      // Google s2 returns a 16x16 generic globe when no real favicon exists
+      if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
+        img.style.display = 'none';
+        if (img.nextElementSibling) img.nextElementSibling.style.display = 'inline';
+      }
+    }
+
+    function handleFaviconError(img) {
+      img.style.display = 'none';
+      if (img.nextElementSibling) img.nextElementSibling.style.display = 'inline';
+    }
+
+    function normalizeUrl(url) {
+      url = url.trim();
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      return url;
+    }
+
+    async function resolveTitleFromUrl(url) {
+      let fallback = url;
+      try {
+        const parsed = new URL(url);
+        const host = parsed.hostname.replace(/^www\./i, '');
+        const pathParts = parsed.pathname.split('/').filter(Boolean);
+        fallback = pathParts.length > 0
+          ? `${host} - ${decodeURIComponent(pathParts[pathParts.length - 1]).replace(/[-_]/g, ' ')}`
+          : host;
+      } catch {}
+
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+          const json = await res.json();
+          const fetchedTitle = json?.data?.title?.trim();
+          if (fetchedTitle) return fetchedTitle;
+        }
+      } catch {}
+
+      return fallback;
+    }
+
+    // Monitor Auth State
+    db.auth.onAuthStateChange((event, session) => {
+      if (session && session.user) {
+        currentUser = session.user;
+        adminAddBox.classList.remove('hidden');
+        importBtn.classList.remove('hidden');
+        logoutBtn.classList.remove('hidden');
+        openLoginBtn.classList.add('hidden');
+        toggleModal('loginModal', false);
+      } else {
+        currentUser = null;
+        adminAddBox.classList.add('hidden');
+        importBtn.classList.add('hidden');
+        logoutBtn.classList.add('hidden');
+        openLoginBtn.classList.remove('hidden');
+      }
+      renderSidebar();
+      renderBookmarks();
+    });
+
+    async function signIn() {
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      if (!email || !password) return setStatus('Enter email and password.', true);
+
+      setStatus('Signing in...');
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        setStatus('Login failed: ' + error.message, true);
+      } else {
+        setStatus('Signed in as Admin.');
+      }
+    }
+
+    async function signOut() {
+      await db.auth.signOut();
+      setStatus('Signed out (View-only mode).');
+    }
+
+    async function fetchBookmarks() {
+      const { data, error } = await db
+        .from('bookmarks')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) return setStatus('Error loading bookmarks: ' + error.message, true);
+
+      allBookmarks = (data || []).map(bm => ({
+        ...bm,
+        tags: parseTags(bm.tags)
+      }));
+      renderSidebar();
+      renderBookmarks();
+    }
+
+    function renderSidebar() {
+      const popularCount = allBookmarks.filter(b => getActiveClicks(b) > 0).length;
+      const folderCounts = {};
+      const tagCounts = {};
+
+      allBookmarks.forEach(bm => {
+        const folder = (bm.folder || 'General').trim();
+        folderCounts[folder] = (folderCounts[folder] || 0) + 1;
+        parseTags(bm.tags).forEach(t => {
+          tagCounts[t] = (tagCounts[t] || 0) + 1;
+        });
+      });
+
+      const customFolders = Object.keys(folderCounts).sort((a, b) => a.localeCompare(b));
+      const allTags = Object.keys(tagCounts).sort((a, b) => a.localeCompare(b));
+
+      const validSelections = ['All', 'Most Visited', ...customFolders];
+      if (!validSelections.includes(selectedFolder)) selectedFolder = 'All';
+      if (selectedTag && !allTags.includes(selectedTag)) selectedTag = '';
+
+      let sidebarHtml = `
+        <div class="folder-item ${selectedFolder === 'All' && !selectedTag ? 'active' : ''}" onclick="selectFolder('All')">
+          <span>📚 All Bookmarks</span>
+          <span class="folder-count">${allBookmarks.length}</span>
+        </div>
+        <div class="folder-item ${selectedFolder === 'Most Visited' ? 'active' : ''}" onclick="selectFolder('Most Visited')">
+          <span>🔥 Most Visited</span>
+          <span class="folder-count">${popularCount}</span>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Folders</div>
+      `;
+
+      sidebarHtml += customFolders.map(folder => `
+        <div class="folder-item ${selectedFolder === folder ? 'active' : ''}" onclick="selectFolder('${escapeHtml(folder).replace(/'/g, "\'")}')">
+          <span>📁 ${escapeHtml(folder)}</span>
+          <span class="folder-count">${folderCounts[folder]}</span>
+        </div>
+      `).join('');
+
+      if (allTags.length > 0) {
+        sidebarHtml += `
+          <div class="sidebar-divider"></div>
+          <div class="sidebar-section-label">Tags</div>
+          <div class="tag-cloud">
+            ${allTags.map(tag => `
+              <span class="sidebar-tag ${selectedTag === tag ? 'active' : ''}" onclick="toggleTagFilter('${escapeHtml(tag).replace(/'/g, "\'")}')">
+                #${escapeHtml(tag)} (${tagCounts[tag]})
+              </span>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      folderSidebar.innerHTML = sidebarHtml;
+
+      folderSuggestions.innerHTML = customFolders
+        .map(f => `<option value="${escapeHtml(f)}">`)
+        .join('');
+    }
+
+    function selectFolder(folder) {
+      selectedFolder = folder;
+      if (folder === 'All') selectedTag = '';
+      renderSidebar();
+      renderBookmarks();
+    }
+
+    function toggleTagFilter(tag) {
+      selectedTag = (selectedTag === tag) ? '' : tag;
+      renderSidebar();
+      renderBookmarks();
+    }
+
+    function renderBookmarks() {
+      const rawQuery = searchInput.value.toLowerCase().trim();
+      const query = rawQuery.replace(/^#/, '');
+      const sortBy = sortSelect.value;
+
+      let filtered = allBookmarks.filter(bm => {
+        const folder = (bm.folder || 'General').trim();
+        const bmTags = parseTags(bm.tags);
+
+        let matchesFolder = true;
+        if (selectedFolder === 'Most Visited') {
+          matchesFolder = getActiveClicks(bm) > 0;
+        } else if (selectedFolder !== 'All') {
+          matchesFolder = folder === selectedFolder;
+        }
+
+        const matchesTag = !selectedTag || bmTags.includes(selectedTag);
+
+        const matchesSearch = !query ||
+          bm.title.toLowerCase().includes(query) ||
+          bm.url.toLowerCase().includes(query) ||
+          folder.toLowerCase().includes(query) ||
+          bmTags.some(t => t.includes(query));
+
+        return matchesFolder && matchesTag && matchesSearch;
+      });
+
+      // Apply Sorting
+      filtered.sort((a, b) => {
+        if (selectedFolder === 'Most Visited' || sortBy === 'popular') {
+          return getActiveClicks(b) - getActiveClicks(a) || b.id - a.id;
+        }
+        if (sortBy === 'az') {
+          return a.title.localeCompare(b.title);
+        }
+        if (sortBy === 'oldest') {
+          return a.id - b.id;
+        }
+        return b.id - a.id; // newest
+      });
+
+      currentFilteredBookmarks = filtered;
+
+      if (filtered.length > 1 && (selectedFolder !== 'All' || selectedTag !== '' || query !== '')) {
+        openAllBtn.classList.remove('hidden');
+        openAllBtn.innerText = `↗ Open All (${filtered.length})`;
+      } else {
+        openAllBtn.classList.add('hidden');
+      }
+
+      const modeText = currentUser ? 'Admin Mode (Read/Write)' : 'Public View-Only';
+      const activeFilters = [
+        selectedFolder !== 'All' ? `Folder: ${selectedFolder}` : '',
+        selectedTag ? `Tag: #${selectedTag}` : ''
+      ].filter(Boolean).join(' • ');
+
+      setStatus(`${modeText}${activeFilters ? ' • ' + activeFilters : ''} • Showing ${filtered.length} bookmark(s)`);
+
+      if (filtered.length === 0) {
+        bookmarkList.innerHTML = `<div style="padding:24px; text-align:center; color:#565f89; font-size:14px;">No bookmarks found.</div>`;
+        return;
+      }
+
+      bookmarkList.innerHTML = filtered.map(bm => {
+        const faviconUrl = getFaviconUrl(bm.url);
+        const bmTags = parseTags(bm.tags);
+        return `
+        <div class="bm-row">
+          <a class="bm-info" href="${escapeHtml(bm.url)}" target="_blank" rel="noopener noreferrer" onclick="trackClick(${bm.id})">
+            <span class="bm-icon-wrap">
+              ${faviconUrl
+                ? `<img class="bm-icon" src="${faviconUrl}" alt="" onload="handleFaviconLoad(this)" onerror="handleFaviconError(this)" /><span class="bm-fallback-icon">🌐</span>`
+                : `<span class="bm-fallback-icon" style="display:inline;">🌐</span>`
+              }
+            </span>
+            <div class="bm-text">
+              <div class="bm-title">${escapeHtml(bm.title)}</div>
+              <div class="bm-url">${escapeHtml(bm.url)}</div>
+              ${bmTags.length > 0 ? `
+                <div class="bm-tags-row">
+                  ${bmTags.map(t => `<span class="bm-tag-pill" onclick="event.preventDefault(); event.stopPropagation(); toggleTagFilter('${escapeHtml(t).replace(/'/g, "\'")}')">#${escapeHtml(t)}</span>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          </a>
+          <div class="bm-meta">
+            ${getActiveClicks(bm) > 0 ? `<span class="bm-clicks" title="${currentUser ? 'Your hits' : 'Public hits'}">${getActiveClicks(bm)} hits</span>` : ''}
+            <span class="bm-folder-badge">${escapeHtml(bm.folder || 'General')}</span>
+            ${currentUser ? `
+              <button class="icon-btn" title="Edit" onclick="openEditModal(${bm.id})">✎</button>
+              <button class="del-btn" title="Delete" onclick="deleteBookmark(${bm.id})">✕</button>
+            ` : ''}
+          </div>
+        </div>
+      `}).join('');
+    }
+
+    // Track separate click counts for logged-in user vs public visitors
+    async function trackClick(id) {
+      const isLoggedIn = Boolean(currentUser);
+      const target = allBookmarks.find(b => b.id === id);
+      if (target) {
+        if (isLoggedIn) {
+          target.user_click_count = (target.user_click_count || 0) + 1;
+        } else {
+          target.public_click_count = (target.public_click_count || 0) + 1;
+        }
+        renderSidebar();
+        renderBookmarks();
+      }
+      const { error } = await db.rpc('increment_bookmark_click', {
+        row_id: id,
+        is_logged_in: isLoggedIn
+      });
+      if (error) console.error('Click update error:', error.message);
+    }
+
+    // Open All in Tabs
+    function openAllInTabs() {
+      if (currentFilteredBookmarks.length === 0) return;
+      if (currentFilteredBookmarks.length > 10) {
+        if (!confirm(`Open ${currentFilteredBookmarks.length} tabs at once?`)) return;
+      }
+      let blocked = false;
+      currentFilteredBookmarks.forEach(bm => {
+        const win = window.open(bm.url, '_blank', 'noopener,noreferrer');
+        if (!win) blocked = true;
+        trackClick(bm.id);
+      });
+      if (blocked) {
+        alert('Your browser blocked some pop-up tabs. Please allow pop-ups for this site to use "Open All".');
+      }
+    }
+
+    // Add Bookmark
+    async function addBookmark() {
+      if (!currentUser) return;
+      const titleInput = document.getElementById('titleInput');
+      const urlInput = document.getElementById('urlInput');
+      const folderInput = document.getElementById('folderInput');
+      const tagsInput = document.getElementById('tagsInput');
+
+      let title = titleInput.value.trim();
+      const rawUrl = urlInput.value.trim();
+      const folder = folderInput.value.trim() || 'General';
+      const tags = parseTags(tagsInput.value);
+
+      if (!rawUrl) return setStatus('URL is required.', true);
+
+      const url = normalizeUrl(rawUrl);
+      if (!title) {
+        setStatus('Fetching page title from URL...');
+        title = await resolveTitleFromUrl(url);
+      }
+      setStatus('Saving bookmark...');
+
+      const { error } = await db
+        .from('bookmarks')
+        .insert([{ title, url, folder, tags, user_id: currentUser.id, user_click_count: 0, public_click_count: 0 }]);
+
+      if (error) return setStatus('Save Error: ' + error.message, true);
+
+      titleInput.value = '';
+      urlInput.value = '';
+      tagsInput.value = '';
+      fetchBookmarks();
+    }
+
+    // Edit Bookmark
+    function openEditModal(id) {
+      const bm = allBookmarks.find(b => b.id === id);
+      if (!bm) return;
+      document.getElementById('editIdInput').value = bm.id;
+      document.getElementById('editTitleInput').value = bm.title;
+      document.getElementById('editUrlInput').value = bm.url;
+      document.getElementById('editFolderInput').value = bm.folder || 'General';
+      document.getElementById('editTagsInput').value = parseTags(bm.tags).join(', ');
+      toggleModal('editModal', true);
+    }
+
+    async function saveEditBookmark() {
+      if (!currentUser) return;
+      const id = Number(document.getElementById('editIdInput').value);
+      let title = document.getElementById('editTitleInput').value.trim();
+      const rawUrl = document.getElementById('editUrlInput').value.trim();
+      const folder = document.getElementById('editFolderInput').value.trim() || 'General';
+      const tags = parseTags(document.getElementById('editTagsInput').value);
+
+      if (!rawUrl) return setStatus('URL is required.', true);
+      const url = normalizeUrl(rawUrl);
+      if (!title) {
+        setStatus('Fetching page title from URL...');
+        title = await resolveTitleFromUrl(url);
+      }
+
+      setStatus('Updating bookmark...');
+      const { error } = await db
+        .from('bookmarks')
+        .update({ title, url, folder, tags })
+        .eq('id', id);
+
+      if (error) return setStatus('Update Error: ' + error.message, true);
+
+      toggleModal('editModal', false);
+      fetchBookmarks();
+    }
+
+    // Delete Bookmark
+    async function deleteBookmark(id) {
+      if (!currentUser) return;
+      const { error } = await db
+        .from('bookmarks')
+        .delete()
+        .eq('id', id);
+
+      if (error) return setStatus('Delete Error: ' + error.message, true);
+      fetchBookmarks();
+    }
+
+    // Export JSON Backup
+    function exportBookmarksJSON() {
+      const cleanData = allBookmarks.map(({ title, url, folder, tags, user_click_count, public_click_count }) => ({
+        title,
+        url,
+        folder: folder || 'General',
+        tags: parseTags(tags),
+        user_click_count: user_click_count || 0,
+        public_click_count: public_click_count || 0
+      }));
+      const blob = new Blob([JSON.stringify(cleanData, null, 2)], { type: 'application/json' });
+      triggerDownload(blob, 'apon-bookmarks-backup.json');
+    }
+
+    // Export Chrome-compatible HTML Bookmarks
+    function exportBookmarksHTML() {
+      const grouped = {};
+      allBookmarks.forEach(bm => {
+        const folder = bm.folder || 'General';
+        if (!grouped[folder]) grouped[folder] = [];
+        grouped[folder].push(bm);
+      });
+
+      let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+`;
+      for (const [folder, items] of Object.entries(grouped)) {
+        html += `    <DT><H3>${escapeHtml(folder)}</H3>
+    <DL><p>
+`;
+        items.forEach(bm => {
+          const tagsAttr = parseTags(bm.tags).length ? ` TAGS="${escapeHtml(parseTags(bm.tags).join(','))}"` : '';
+          html += `        <DT><A HREF="${escapeHtml(bm.url)}"${tagsAttr}>${escapeHtml(bm.title)}</A>
+`;
+        });
+        html += `    </DL><p>
+`;
+      }
+      html += `</DL><p>`;
+
+      const blob = new Blob([html], { type: 'text/html' });
+      triggerDownload(blob, 'apon-bookmarks.html');
+    }
+
+    function triggerDownload(blob, filename) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // Import JSON or Chrome HTML Bookmarks (Admin only)
+    async function handleImportFile(event) {
+      if (!currentUser) return;
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const text = await file.text();
+      let rowsToInsert = [];
+
+      try {
+        if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) throw new Error('JSON must be an array of bookmarks.');
+          rowsToInsert = parsed
+            .filter(item => item.title && item.url)
+            .map(item => ({
+              title: String(item.title).trim(),
+              url: normalizeUrl(String(item.url)),
+              folder: String(item.folder || 'General').trim(),
+              tags: parseTags(item.tags),
+              user_click_count: Number(item.user_click_count ?? item.click_count) || 0,
+              public_click_count: Number(item.public_click_count) || 0,
+              user_id: currentUser.id
+            }));
+        } else {
+          // Parse Chrome/Netscape Bookmark HTML
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const links = doc.querySelectorAll('a');
+          links.forEach(a => {
+            const href = a.getAttribute('href');
+            const title = a.textContent.trim();
+            const tags = parseTags(a.getAttribute('tags') || '');
+            if (href && /^https?:\/\//i.test(href) && title) {
+              let folder = 'Imported';
+              const parentDl = a.closest('dl');
+              if (parentDl && parentDl.previousElementSibling && parentDl.previousElementSibling.tagName === 'H3') {
+                folder = parentDl.previousElementSibling.textContent.trim() || 'Imported';
+              }
+              rowsToInsert.push({
+                title,
+                url: href,
+                folder,
+                tags,
+                user_click_count: 0,
+                public_click_count: 0,
+                user_id: currentUser.id
+              });
+            }
+          });
+        }
+
+        if (rowsToInsert.length === 0) {
+          setStatus('No valid bookmarks found in file.', true);
+          event.target.value = '';
+          return;
+        }
+
+        setStatus(`Importing ${rowsToInsert.length} bookmarks...`);
+        const { error } = await db.from('bookmarks').insert(rowsToInsert);
+        if (error) throw error;
+
+        setStatus(`Successfully imported ${rowsToInsert.length} bookmarks!`);
+        fetchBookmarks();
+      } catch (err) {
+        setStatus('Import failed: ' + err.message, true);
+      }
+      event.target.value = '';
+    }
+
+    // Keyboard shortcuts
+    document.getElementById('urlInput').addEventListener('keypress', e => { if (e.key === 'Enter') addBookmark(); });
+    document.getElementById('folderInput').addEventListener('keypress', e => { if (e.key === 'Enter') addBookmark(); });
+    document.getElementById('tagsInput').addEventListener('keypress', e => { if (e.key === 'Enter') addBookmark(); });
+    document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') signIn(); });
+    document.getElementById('editFolderInput').addEventListener('keypress', e => { if (e.key === 'Enter') saveEditBookmark(); });
+    document.getElementById('editTagsInput').addEventListener('keypress', e => { if (e.key === 'Enter') saveEditBookmark(); });
+
+    // Public initial load
+    fetchBookmarks();
+  </script>
+</body>
+</html>
