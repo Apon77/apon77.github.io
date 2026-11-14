@@ -8,7 +8,7 @@
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #1a1b26; color: #c0caf5; display: flex; flex-direction: column; height: 100vh; }
-    
+
     /* Top Header */
     header { background: #16161e; border-bottom: 1px solid #292e42; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .brand { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; color: #7aa2f7; white-space: nowrap; }
@@ -118,6 +118,7 @@
       <button id="importBtn" class="btn-secondary hidden" onclick="document.getElementById('importFile').click()">Import</button>
       <input type="file" id="importFile" class="hidden" accept=".json,.html,.htm" onchange="handleImportFile(event)" />
       <span id="userEmailDisplay" class="user-email-badge hidden"></span>
+      <button id="changePassBtn" class="btn-secondary hidden" onclick="toggleModal('passwordModal', true)">Change Password</button>
       <button id="openLoginBtn" onclick="openAuthModal('login')">Sign In</button>
       <button id="openSignupBtn" class="btn-secondary" onclick="openAuthModal('signup')">Sign Up</button>
       <button id="logoutBtn" class="btn-secondary hidden" onclick="signOut()">Logout</button>
@@ -171,6 +172,19 @@
     </div>
   </div>
 
+  <!-- Change Password Modal -->
+  <div id="passwordModal" class="modal-backdrop hidden" onclick="if(event.target===this) toggleModal('passwordModal', false)">
+    <div class="modal">
+      <h3 style="margin:0; font-size:16px;">Change Password</h3>
+      <p style="margin:0; font-size:12px; color:#a9b1d6;">Enter your new password below.</p>
+      <input type="password" id="newPasswordInput" placeholder="New Password (min 6 characters)" />
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="toggleModal('passwordModal', false)">Cancel</button>
+        <button onclick="updatePassword()">Update Password</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Edit Bookmark Modal -->
   <div id="editModal" class="modal-backdrop hidden" onclick="if(event.target===this) toggleModal('editModal', false)">
     <div class="modal">
@@ -206,6 +220,7 @@
     const openLoginBtn = document.getElementById('openLoginBtn');
     const openSignupBtn = document.getElementById('openSignupBtn');
     const logoutBtn = document.getElementById('logoutBtn');
+    const changePassBtn = document.getElementById('changePassBtn');
     const userEmailDisplay = document.getElementById('userEmailDisplay');
     const openAllBtn = document.getElementById('openAllBtn');
     const bookmarkList = document.getElementById('bookmarkList');
@@ -250,6 +265,7 @@
       const el = document.getElementById(modalId);
       el.classList.toggle('hidden', !show);
       if (show && modalId === 'loginModal') document.getElementById('emailInput').focus();
+      if (show && modalId === 'passwordModal') document.getElementById('newPasswordInput').focus();
       if (show && modalId === 'editModal') document.getElementById('editTitleInput').focus();
     }
 
@@ -353,6 +369,7 @@
         exportJsonBtn.classList.remove('hidden');
         exportHtmlBtn.classList.remove('hidden');
         logoutBtn.classList.remove('hidden');
+        changePassBtn.classList.remove('hidden');
         userEmailDisplay.innerText = currentUser.email;
         userEmailDisplay.classList.remove('hidden');
         openLoginBtn.classList.add('hidden');
@@ -368,6 +385,7 @@
         exportJsonBtn.classList.add('hidden');
         exportHtmlBtn.classList.add('hidden');
         logoutBtn.classList.add('hidden');
+        changePassBtn.classList.add('hidden');
         userEmailDisplay.classList.add('hidden');
         openLoginBtn.classList.remove('hidden');
         openSignupBtn.classList.remove('hidden');
@@ -405,6 +423,26 @@
         } else {
           setStatus('Signed in.');
         }
+      }
+    }
+
+    async function updatePassword() {
+      if (!currentUser) return setStatus('You must be logged in.', true);
+      
+      const newPassword = document.getElementById('newPasswordInput').value;
+      if (!newPassword || newPassword.length < 6) {
+        return setStatus('Password must be at least 6 characters.', true);
+      }
+
+      setStatus('Updating password...');
+      const { error } = await db.auth.updateUser({ password: newPassword });
+
+      if (error) {
+        setStatus('Password update failed: ' + error.message, true);
+      } else {
+        setStatus('Password updated successfully!');
+        document.getElementById('newPasswordInput').value = '';
+        toggleModal('passwordModal', false);
       }
     }
 
@@ -480,7 +518,7 @@
       `;
 
       sidebarHtml += customFolders.map(folder => `
-        <div class="folder-item ${selectedFolder === folder ? 'active' : ''}" onclick="selectFolder('${escapeHtml(folder).replace(/'/g, "\'")}')">
+        <div class="folder-item ${selectedFolder === folder ? 'active' : ''}" onclick="selectFolder('${escapeHtml(folder).replace(/'/g, "\\'")}')">
           <span>📁 ${escapeHtml(folder)}</span>
           <span class="folder-count">${folderCounts[folder]}</span>
         </div>
@@ -492,7 +530,7 @@
           <div class="sidebar-section-label">Tags</div>
           <div class="tag-cloud">
             ${allTags.map(tag => `
-              <span class="sidebar-tag ${selectedTag === tag ? 'active' : ''}" onclick="toggleTagFilter('${escapeHtml(tag).replace(/'/g, "\'")}')">
+              <span class="sidebar-tag ${selectedTag === tag ? 'active' : ''}" onclick="toggleTagFilter('${escapeHtml(tag).replace(/'/g, "\\'")}')">
                 #${escapeHtml(tag)} (${tagCounts[tag]})
               </span>
             `).join('')}
@@ -615,7 +653,7 @@
               <div class="bm-url">${escapeHtml(bm.url)}</div>
               ${bmTags.length > 0 ? `
                 <div class="bm-tags-row">
-                  ${bmTags.map(t => `<span class="bm-tag-pill" onclick="event.preventDefault(); event.stopPropagation(); toggleTagFilter('${escapeHtml(t).replace(/'/g, "\'")}')">#${escapeHtml(t)}</span>`).join('')}
+                  ${bmTags.map(t => `<span class="bm-tag-pill" onclick="event.preventDefault(); event.stopPropagation(); toggleTagFilter('${escapeHtml(t).replace(/'/g, "\\'")}')">#${escapeHtml(t)}</span>`).join('')}
                 </div>
               ` : ''}
             </div>
@@ -879,8 +917,11 @@
     document.getElementById('tagsInput').addEventListener('keypress', e => { if (e.key === 'Enter') addBookmark(); });
     document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') submitAuth(); });
     document.getElementById('inviteCodeInput').addEventListener('keypress', e => { if (e.key === 'Enter') submitAuth(); });
+    document.getElementById('newPasswordInput').addEventListener('keypress', e => { if (e.key === 'Enter') updatePassword(); });
     document.getElementById('editFolderInput').addEventListener('keypress', e => { if (e.key === 'Enter') saveEditBookmark(); });
     document.getElementById('editTagsInput').addEventListener('keypress', e => { if (e.key === 'Enter') saveEditBookmark(); });
   </script>
 </body>
 </html>
+
+
