@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Apon | Project Portfolio</title>
-    
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-15455WVHXK"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -17,101 +17,253 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="16x16" href="v1/assets/img/favicon.webp" />
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .gradient-bg { background: radial-gradient(circle at top right, #1e293b, #020617); }
-        .project-card:hover { border-color: #3b82f6; transform: translateY(-5px); transition: all 0.3s ease; }
-        @keyframes pulse-slow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+        :root {
+            --bg-primary: #020617;
+            --bg-secondary: #1e293b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-hover: rgba(255, 255, 255, 0.12);
+            --accent-1: #60a5fa;
+            --accent-2: #34d399;
+            --orb-1: rgba(37, 99, 235, 0.12);
+            --orb-2: rgba(5, 150, 105, 0.12);
+            --card-hover-border: #3b82f6;
+            --footer-border: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(15, 23, 42, 0.08);
+            --btn-bg: rgba(15, 23, 42, 0.05);
+            --btn-hover: rgba(15, 23, 42, 0.1);
+            --accent-1: #2563eb;
+            --accent-2: #059669;
+            --orb-1: rgba(37, 99, 235, 0.15);
+            --orb-2: rgba(5, 150, 105, 0.15);
+            --card-hover-border: #2563eb;
+            --footer-border: rgba(15, 23, 42, 0.08);
+        }
+
+        [data-theme="cyberpunk"] {
+            --bg-primary: #090014;
+            --bg-secondary: #240046;
+            --text-primary: #fdf4ff;
+            --text-secondary: #e879f9;
+            --text-muted: #a855f7;
+            --glass-bg: rgba(255, 0, 128, 0.05);
+            --glass-border: rgba(232, 121, 249, 0.25);
+            --btn-bg: rgba(232, 121, 249, 0.12);
+            --btn-hover: rgba(232, 121, 249, 0.25);
+            --accent-1: #f43f5e;
+            --accent-2: #06b6d4;
+            --orb-1: rgba(244, 63, 94, 0.2);
+            --orb-2: rgba(6, 182, 212, 0.2);
+            --card-hover-border: #06b6d4;
+            --footer-border: rgba(232, 121, 249, 0.15);
+        }
+
+        [data-theme="emerald"] {
+            --bg-primary: #02140e;
+            --bg-secondary: #063729;
+            --text-primary: #ecfdf5;
+            --text-secondary: #a7f3d0;
+            --text-muted: #6ee7b7;
+            --glass-bg: rgba(16, 185, 129, 0.05);
+            --glass-border: rgba(52, 211, 153, 0.18);
+            --btn-bg: rgba(52, 211, 153, 0.1);
+            --btn-hover: rgba(52, 211, 153, 0.2);
+            --accent-1: #34d399;
+            --accent-2: #fbbf24;
+            --orb-1: rgba(16, 185, 129, 0.15);
+            --orb-2: rgba(251, 191, 36, 0.1);
+            --card-hover-border: #34d399;
+            --footer-border: rgba(52, 211, 153, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, var(--bg-secondary), var(--bg-primary));
+            color: var(--text-primary);
+            transition: background 0.4s ease, color 0.3s ease;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--card-hover-border);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.25);
+        }
+
+        .theme-btn {
+            background: var(--btn-bg);
+            transition: background 0.2s ease, transform 0.15s ease;
+        }
+
+        .theme-btn:hover {
+            background: var(--btn-hover);
+        }
+
+        .theme-text-secondary { color: var(--text-secondary); }
+        .theme-text-muted { color: var(--text-muted); }
+        .theme-title-gradient {
+            background-image: linear-gradient(to right, var(--accent-1), var(--accent-2));
+        }
+
+        .orb-1 { background-color: var(--orb-1); }
+        .orb-2 { background-color: var(--orb-2); }
+
+        @keyframes pulse-slow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.75; } }
         .animate-pulse-slow { animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
-<body class="gradient-bg text-slate-200 min-h-screen">
+<body class="min-h-screen">
 
-    <div class="fixed top-20 left-20 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px] animate-pulse-slow"></div>
-    <div class="fixed bottom-20 right-20 w-96 h-96 bg-emerald-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+    <div class="fixed top-20 left-20 w-64 h-64 orb-1 rounded-full blur-[100px] animate-pulse-slow pointer-events-none"></div>
+    <div class="fixed bottom-20 right-20 w-96 h-96 orb-2 rounded-full blur-[120px] animate-pulse-slow pointer-events-none"></div>
 
-    <div class="container mx-auto px-6 py-12 max-w-5xl relative z-10">
-        
+    <div class="container mx-auto px-6 py-8 max-w-5xl relative z-10">
+
+        <!-- Theme Switcher Bar -->
+        <nav class="flex justify-end mb-8">
+            <button id="theme-toggle" class="glass px-4 py-2 rounded-2xl flex items-center gap-2.5 text-sm font-medium hover:scale-105 active:scale-95 transition cursor-pointer" title="Click to switch theme">
+                <span id="theme-icon" class="text-base">🌙</span>
+                <span id="theme-label">Midnight</span>
+            </button>
+        </nav>
+
         <header class="text-center mb-20">
             <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-4">
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">APON'S</span> PROJECTS
+                <span class="bg-clip-text text-transparent theme-title-gradient">APON'S</span> PROJECTS
             </h1>
-            <p class="text-slate-400 text-lg">A collection of my web applications and experiments.</p>
+            <p class="theme-text-secondary text-lg">A collection of my web applications and experiments.</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
+
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-blue-500 mb-2 block uppercase tracking-widest">Project 01</span>
                 <h3 class="text-xl font-bold mb-4">Dicee Challenge</h3>
-                <a href="https://apon77.github.io/Dicee-Challenge" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="https://apon77.github.io/Dicee-Challenge" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-emerald-500 mb-2 block uppercase tracking-widest">Project 02</span>
                 <h3 class="text-xl font-bold mb-4">Tuesday</h3>
-                <a href="https://apon77.github.io/tuesday" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="https://apon77.github.io/tuesday" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-purple-500 mb-2 block uppercase tracking-widest">Project 03</span>
                 <h3 class="text-xl font-bold mb-4">FM Calculation</h3>
-                <a href="fm" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="fm" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-orange-500 mb-2 block uppercase tracking-widest">Project 04</span>
                 <h3 class="text-xl font-bold mb-4">BMI Calculation</h3>
-                <a href="bmi" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="bmi" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-pink-500 mb-2 block uppercase tracking-widest">Project 05</span>
                 <h3 class="text-xl font-bold mb-4">BACL</h3>
-                <a href="bacl" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="bacl" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-cyan-500 mb-2 block uppercase tracking-widest">Project 06</span>
                 <h3 class="text-xl font-bold mb-4">IPTV Filter</h3>
-                <a href="iptv-filter" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="iptv-filter" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-blue-500 mb-2 block uppercase tracking-widest">Project 07</span>
                 <h3 class="text-xl font-bold mb-4">Price Comparison</h3>
-                <a href="pc" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="pc" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-green-500 mb-2 block uppercase tracking-widest">Project 08</span>
                 <h3 class="text-xl font-bold mb-4">Link Shortener</h3>
-                <a href="https://apon.dpdns.org" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="https://apon.dpdns.org" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-purple-500 mb-2 block uppercase tracking-widest">Project 09</span>
                 <h3 class="text-xl font-bold mb-4">E-BOQ</h3>
-                <a href="https://e-boq.epizy.com" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="https://e-boq.epizy.com" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
 
             <div class="glass p-6 rounded-3xl project-card group">
                 <span class="text-xs font-bold text-blue-500 mb-2 block uppercase tracking-widest">Project 10</span>
                 <h3 class="text-xl font-bold mb-4">Bookmark Manager</h3>
-                <a href="bm" class="inline-block bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-medium transition">Launch App ↗</a>
+                <a href="bm" class="inline-block theme-btn px-4 py-2 rounded-xl text-sm font-medium">Launch App ↗</a>
             </div>
         </div>
 
-        <footer class="mt-24 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-slate-500 text-sm italic">"Keep building, keep learning."</p>
+        <footer class="mt-24 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4" style="border-color: var(--footer-border);">
+            <p class="theme-text-muted text-sm italic">"Keep building, keep learning."</p>
             <div class="glass px-6 py-3 rounded-2xl flex items-center gap-4">
-                <span class="text-xs text-slate-400 uppercase tracking-widest">Archive</span>
-                <a href="v1/index.html" class="text-sm font-bold text-blue-400 hover:text-white transition">Older Version (v1)</a>
+                <span class="text-xs theme-text-secondary uppercase tracking-widest">Archive</span>
+                <a href="v1/index.html" class="text-sm font-bold text-blue-500 hover:underline transition">Older Version (v1)</a>
             </div>
         </footer>
     </div>
 
+    <script>
+        const themes = [
+            { id: 'dark', name: 'Midnight', icon: '🌙' },
+            { id: 'light', name: 'Daylight', icon: '☀️' },
+            { id: 'cyberpunk', name: 'Cyberpunk', icon: '⚡' },
+            { id: 'emerald', name: 'Forest', icon: '🌲' }
+        ];
+
+        const toggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeLabel = document.getElementById('theme-label');
+
+        // Load saved theme or default to 'dark'
+        let currentIndex = themes.findIndex(t => t.id === localStorage.getItem('portfolio-theme'));
+        if (currentIndex === -1) currentIndex = 0;
+
+        function applyTheme(index) {
+            const theme = themes[index];
+            if (theme.id === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme.id);
+            }
+            themeIcon.textContent = theme.icon;
+            themeLabel.textContent = theme.name;
+            localStorage.setItem('portfolio-theme', theme.id);
+        }
+
+        // Initialize on page load
+        applyTheme(currentIndex);
+
+        // Cycle through themes on click
+        toggleBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % themes.length;
+            applyTheme(currentIndex);
+        });
+    </script>
 </body>
 </html>
