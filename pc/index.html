@@ -51,6 +51,7 @@
         .history-title{font-weight:bold;font-size:15px;color:#007bff}
         .history-date{font-size:12px;color:#6c757d;white-space:nowrap}
         .history-opts{color:#495057;margin-bottom:8px;line-height:1.5}
+        .history-savings{background:#eef9f1;border-left:3px solid #28a745;padding:7px 10px;border-radius:4px;margin-bottom:8px;font-size:13px;color:#155724;line-height:1.45}
         .history-actions{display:flex;gap:8px;justify-content:flex-end}
         .btn-sm{padding:5px 10px;font-size:12px;flex:none;border-radius:4px;color:white}
         .btn-restore{background:#17a2b8}
@@ -157,7 +158,6 @@
                 const num = idx + 1;
                 row.querySelector('.opt-label').innerText = `Option ${num}:`;
 
-                // Ensure first row always holds the editable unit input
                 const unitContainer = row.querySelector('.unit-container');
                 if (num === 1 && !unitContainer.querySelector('#main-unit')) {
                     unitContainer.innerHTML = `<input type="text" id="main-unit" class="unit-input" value="${escapeAttr(currentUnit)}" oninput="updateUnits()" placeholder="unit"> =`;
@@ -178,7 +178,6 @@
             });
         }
 
-        // Generates a deterministic signature to prevent duplicate saves
         function createSignature(itemName, unit, options) {
             const normalizedOpts = options
                 .map(o => `${o.w}:${o.p}`)
@@ -249,6 +248,27 @@
             box.innerHTML = html + '</table>' + statusNote;
         }
 
+        function buildSavingsSummary(item) {
+            const unit = item.unit || 'unit';
+            const withCosts = item.options
+                .filter(o => o.w > 0 && !isNaN(o.p))
+                .map(o => ({ ...o, cost: o.p / o.w }));
+
+            if (withCosts.length < 2) return '';
+
+            const maxQ = Math.max(...withCosts.map(o => o.w));
+            const sorted = [...withCosts].sort((a, b) => a.cost - b.cost);
+            const win = sorted[0];
+            const wMax = win.cost * maxQ;
+
+            const savingsList = sorted.slice(1).map(o => {
+                const saved = (o.cost * maxQ) - wMax;
+                return `Opt ${o.i}: <strong>${saved.toFixed(2)} Tk</strong>`;
+            });
+
+            return `💰 <strong>Saved at ${maxQ} ${escapeHTML(unit)}</strong> (vs Opt ${win.i} 🏆): ${savingsList.join(' • ')}`;
+        }
+
         function getHistory() {
             try {
                 return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -259,7 +279,6 @@
 
         function saveToHistory(entry) {
             const history = getHistory();
-            // Check if an identical comparison already exists
             const isDuplicate = history.some(h => {
                 const existingSig = h.signature || createSignature(h.itemName, h.unit, h.options);
                 return existingSig === entry.signature;
@@ -282,7 +301,8 @@
             const filtered = query
                 ? history.filter(item => {
                     const optsText = item.options.map(o => `${o.w} ${item.unit} ${o.p} tk`).join(' ');
-                    const searchable = `${item.itemName} ${item.unit} ${item.date} ${optsText}`.toLowerCase();
+                    const savingsText = buildSavingsSummary(item);
+                    const searchable = `${item.itemName} ${item.unit} ${item.date} ${optsText} ${savingsText}`.toLowerCase();
                     return searchable.includes(query);
                 })
                 : history;
@@ -304,6 +324,8 @@
                     </span>`
                 ).join(' &nbsp;|&nbsp; ');
 
+                const savingsHtml = buildSavingsSummary(item);
+
                 return `
                 <div class="history-card">
                     <div class="history-top">
@@ -311,6 +333,7 @@
                         <span class="history-date">${escapeHTML(item.date)}</span>
                     </div>
                     <div class="history-opts">${optsSummary}</div>
+                    ${savingsHtml ? `<div class="history-savings">${savingsHtml}</div>` : ''}
                     <div class="history-actions">
                         <button class="btn-sm btn-restore" onclick="restoreHistory(${item.id})">Restore</button>
                         <button class="btn-sm btn-del" onclick="deleteHistory(${item.id})">Delete</button>
@@ -401,7 +424,6 @@
                         }
                     });
 
-                    // Sort newest first by ID/timestamp
                     current.sort((a, b) => b.id - a.id);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
                     renderHistory();
