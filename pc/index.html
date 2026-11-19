@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Price Calculator</title>
     <style>
-        body{font-family:sans-serif;max-width:520px;margin:20px auto;padding:15px;background:#f8f9fa}
+        body{font-family:sans-serif;max-width:520px;margin:20px auto;padding:15px;background:#f8f9fa;color:#212529}
+        .item-name-box{margin-bottom:12px}
+        .item-name-box input{width:100%;box-sizing:border-box;padding:8px 12px;text-align:left;font-size:15px;border:1px solid #ccc;border-radius:6px}
         .row{display:flex;align-items:center;justify-content:space-between;background:white;padding:12px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px}
         .row.hidden{display:none}
         .row label{font-weight:bold;width:80px}
@@ -25,14 +27,38 @@
         .res-table th{background:#e2e6ea;font-weight:bold}
         .win-row{background:#d4edda;font-weight:bold;color:#155724}
         .save-txt{color:#28a745;font-weight:500}
+        
+        /* History Styles */
+        .history-section{margin-top:30px;border-top:2px solid #dee2e6;padding-top:15px}
+        .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+        .history-header h3{margin:0}
+        .btn-clear{background:#dc3545;color:white;padding:6px 10px;font-size:13px;flex:none;border-radius:4px}
+        .btn-clear:hover{background:#c82333}
+        .history-card{background:white;border:1px solid #ddd;border-radius:6px;padding:12px;margin-bottom:10px;font-size:14px}
+        .history-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid #eee;padding-bottom:6px}
+        .history-title{font-weight:bold;font-size:15px;color:#007bff}
+        .history-date{font-size:12px;color:#6c757d}
+        .history-opts{color:#495057;margin-bottom:8px;line-height:1.4}
+        .history-actions{display:flex;gap:8px;justify-content:flex-end}
+        .btn-sm{padding:5px 10px;font-size:12px;flex:none;border-radius:4px}
+        .btn-restore{background:#17a2b8;color:white}
+        .btn-restore:hover{background:#138496}
+        .btn-del{background:#6c757d;color:white}
+        .btn-del:hover{background:#5a6268}
+        .empty-msg{color:#6c757d;font-style:italic;text-align:center;padding:15px}
     </style>
 </head>
 <body>
     <h2>Compare Options</h2>
+    
+    <div class="item-name-box">
+        <input type="text" id="item-name" placeholder="Item Name (optional, e.g. Cooking Oil)">
+    </div>
+
     <div id="options-container">
         <div class="row" id="row1">
             <label>Option 1:</label>
-            <input type="number" id="w1" placeholder="Quantity" value="40"> 
+            <input type="number" id="w1" placeholder="Quantity" value="40">
             <div class="unit-container">
                 <input type="text" id="main-unit" class="unit-input" value="g" oninput="updateUnits()" placeholder="unit"> =
             </div>
@@ -40,46 +66,64 @@
         </div>
         <div class="row" id="row2">
             <label>Option 2:</label>
-            <input type="number" id="w2" placeholder="Quantity" value="248"> 
+            <input type="number" id="w2" placeholder="Quantity" value="248">
             <div class="unit-container"><span class="unit-label" id="u2">g</span> =</div>
             <input type="number" id="p2" placeholder="Price" value="110"> Tk
         </div>
         <div class="row hidden" id="row3">
             <label>Option 3:</label>
-            <input type="number" id="w3" placeholder="Quantity"> 
+            <input type="number" id="w3" placeholder="Quantity">
             <div class="unit-container"><span class="unit-label" id="u3">g</span> =</div>
             <input type="number" id="p3" placeholder="Price"> Tk
         </div>
         <div class="row hidden" id="row4">
             <label>Option 4:</label>
-            <input type="number" id="w4" placeholder="Quantity"> 
+            <input type="number" id="w4" placeholder="Quantity">
             <div class="unit-container"><span class="unit-label" id="u4">g</span> =</div>
             <input type="number" id="p4" placeholder="Price"> Tk
         </div>
         <div class="row hidden" id="row5">
             <label>Option 5:</label>
-            <input type="number" id="w5" placeholder="Quantity"> 
+            <input type="number" id="w5" placeholder="Quantity">
             <div class="unit-container"><span class="unit-label" id="u5">g</span> =</div>
             <input type="number" id="p5" placeholder="Price"> Tk
         </div>
         <div class="row hidden" id="row6">
             <label>Option 6:</label>
-            <input type="number" id="w6" placeholder="Quantity"> 
+            <input type="number" id="w6" placeholder="Quantity">
             <div class="unit-container"><span class="unit-label" id="u6">g</span> =</div>
             <input type="number" id="p6" placeholder="Price"> Tk
         </div>
     </div>
+
     <div class="btn-group">
         <button class="btn-add" id="add-btn" onclick="showNextOption()">➕ Add Option</button>
         <button class="btn-calc" onclick="compareAll()">Find Most Profitable</button>
     </div>
+
     <div id="result-box"></div>
+
+    <!-- History Section -->
+    <div class="history-section">
+        <div class="history-header">
+            <h3>🕒 Comparison History</h3>
+            <button class="btn-clear" onclick="clearHistory()">Clear All</button>
+        </div>
+        <div id="history-list"></div>
+    </div>
+
     <script>
+        const STORAGE_KEY = 'price_calc_history';
         let visibleCount = 2;
+
+        // Load history on page load
+        window.onload = renderHistory;
+
         function updateUnits() {
             const u = document.getElementById('main-unit').value || 'unit';
             for (let i = 2; i <= 6; i++) document.getElementById(`u${i}`).innerText = u;
         }
+
         function showNextOption() {
             if (visibleCount < 6) {
                 visibleCount++;
@@ -87,25 +131,33 @@
             }
             if (visibleCount === 6) document.getElementById('add-btn').style.display = 'none';
         }
-        function compareAll() {
+
+        function compareAll(skipSave = false) {
             let opts = [], u = document.getElementById('main-unit').value || 'unit', maxQ = 0;
+            const itemName = document.getElementById('item-name').value.trim() || 'Unnamed Comparison';
+
             for (let i = 1; i <= visibleCount; i++) {
-                const p = parseFloat(document.getElementById(`p${i}`).value), w = parseFloat(document.getElementById(`w${i}`).value);
+                const p = parseFloat(document.getElementById(`p${i}`).value);
+                const w = parseFloat(document.getElementById(`w${i}`).value);
                 if (!isNaN(p) && !isNaN(w) && w > 0) {
-                    opts.push({ i, cost: p / w, w });
+                    opts.push({ i, cost: p / w, w, p });
                     if (w > maxQ) maxQ = w;
                 }
             }
+
             const box = document.getElementById('result-box');
             if (opts.length < 2) {
                 box.style.display = 'block';
                 box.innerHTML = "❌ Please enter at least 2 options to compare.";
                 return;
             }
-            opts.sort((a, b) => a.cost - b.cost);
-            const win = opts[0];
+
+            // Sort cheapest first
+            const sortedOpts = [...opts].sort((a, b) => a.cost - b.cost);
+            const win = sortedOpts[0];
+
             let html = `<strong>📊 Breakdown at ${maxQ} ${u} Benchmark:</strong><table class="res-table"><tr><th>Option</th><th>Tk/${u}</th><th>Total Cost</th><th>Money Saved</th></tr>`;
-            opts.forEach(o => {
+            sortedOpts.forEach(o => {
                 const isW = o.i === win.i, cMax = o.cost * maxQ, wMax = win.cost * maxQ;
                 html += `<tr class="${isW ? 'win-row' : ''}">
                     <td>Option ${o.i} ${isW ? '🏆' : ''}</td>
@@ -116,6 +168,108 @@
             });
             box.style.display = 'block';
             box.innerHTML = html + '</table>';
+
+            // Save to localStorage unless triggered by Restore
+            if (!skipSave) {
+                saveToHistory({
+                    id: Date.now(),
+                    date: new Date().toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
+                    itemName,
+                    unit: u,
+                    options: opts, // saves original order
+                    winnerOption: win.i,
+                    winnerRate: win.cost.toFixed(4)
+                });
+            }
+        }
+
+        function saveToHistory(entry) {
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            history.unshift(entry); // Add newest at the top
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+            if (history.length === 0) {
+                list.innerHTML = '<div class="empty-msg">No saved comparisons yet.</div>';
+                return;
+            }
+
+            list.innerHTML = history.map(item => {
+                const optsSummary = item.options.map(o => 
+                    `<span style="${o.i === item.winnerOption ? 'color:#155724;font-weight:bold;' : ''}">
+                        Opt ${o.i}: ${o.w}${item.unit} = ${o.p} Tk ${o.i === item.winnerOption ? '🏆' : ''}
+                    </span>`
+                ).join(' &nbsp;|&nbsp; ');
+
+                return `
+                <div class="history-card">
+                    <div class="history-top">
+                        <span class="history-title">${escapeHTML(item.itemName)}</span>
+                        <span class="history-date">${item.date}</span>
+                    </div>
+                    <div class="history-opts">${optsSummary}</div>
+                    <div class="history-actions">
+                        <button class="btn-sm btn-restore" onclick="restoreHistory(${item.id})">Restore</button>
+                        <button class="btn-sm btn-del" onclick="deleteHistory(${item.id})">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function restoreHistory(id) {
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            // Reset inputs and rows
+            document.getElementById('item-name').value = item.itemName === 'Unnamed Comparison' ? '' : item.itemName;
+            document.getElementById('main-unit').value = item.unit;
+            updateUnits();
+
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`w${i}`).value = '';
+                document.getElementById(`p${i}`).value = '';
+                if (i > 2) document.getElementById(`row${i}`).classList.add('hidden');
+            }
+            visibleCount = 2;
+            document.getElementById('add-btn').style.display = 'inline-block';
+
+            // Populate saved options
+            item.options.forEach((opt, idx) => {
+                const rowNum = idx + 1;
+                while (visibleCount < rowNum) showNextOption();
+                document.getElementById(`w${rowNum}`).value = opt.w;
+                document.getElementById(`p${rowNum}`).value = opt.p;
+            });
+
+            // Recalculate display without duplicating history entry
+            compareAll(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteHistory(id) {
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearHistory() {
+            if (confirm('Clear all saved comparison history?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderHistory();
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
         }
     </script>
 </body>
