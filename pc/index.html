@@ -26,6 +26,10 @@
         .btn-reset{background:#6c757d;color:white;max-width:95px}
         .btn-reset:hover{background:#5a6268}
         #result-box{margin-top:15px;padding:15px;background:#e9ecef;border-radius:6px;display:none;line-height:1.5}
+        .benchmark-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+        .benchmark-input{width:85px !important;padding:4px 6px !important;font-weight:bold;border:1px solid #007bff !important;background:#fff;color:#007bff}
+        .btn-max-reset{padding:4px 8px;font-size:12px;flex:none;background:#6c757d;color:white;border-radius:4px}
+        .btn-max-reset:hover{background:#5a6268}
         .res-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
         .res-table th,.res-table td{padding:8px;text-align:left;border-bottom:1px solid #ddd}
         .res-table th{background:#e2e6ea;font-weight:bold}
@@ -100,6 +104,7 @@
     <script>
         const STORAGE_KEY = 'price_calc_history_v2';
         let currentUnit = 'g';
+        let lastComparison = null;
 
         window.onload = () => {
             initDefaultRows();
@@ -116,6 +121,7 @@
         function resetForm() {
             document.getElementById('item-name').value = '';
             currentUnit = 'g';
+            lastComparison = null;
             const container = document.getElementById('options-container');
             container.innerHTML = '';
             addOptionRow('', '');
@@ -176,6 +182,10 @@
             document.querySelectorAll('#options-container .unit-label').forEach(el => {
                 el.innerText = currentUnit;
             });
+            const benchUnit = document.getElementById('bench-unit-label');
+            if (benchUnit) {
+                benchUnit.innerText = currentUnit;
+            }
         }
 
         function createSignature(itemName, unit, options) {
@@ -228,24 +238,66 @@
                 }
             }
 
-            let html = `<strong>📊 Breakdown at ${maxQ} ${escapeHTML(u)} Benchmark:</strong>
-                <table class="res-table">
-                    <tr><th>Option</th><th>Tk/${escapeHTML(u)}</th><th>Total Cost</th><th>Money Saved</th></tr>`;
+            lastComparison = {
+                sortedOpts,
+                win,
+                maxQ,
+                statusNote
+            };
+
+            box.style.display = 'block';
+            box.innerHTML = `
+                <div class="benchmark-bar">
+                    <strong>📊 Breakdown at</strong>
+                    <input type="number" id="benchmark-qty" class="benchmark-input" value="${maxQ}" step="any" min="0" oninput="renderBreakdownTable()">
+                    <strong><span id="bench-unit-label">${escapeHTML(u)}</span> Benchmark:</strong>
+                    <button type="button" id="btn-reset-max" class="btn-max-reset" style="display:none" onclick="resetBenchmarkToMax()">Reset to Max (${maxQ})</button>
+                </div>
+                <div id="breakdown-table-wrapper"></div>
+                ${statusNote}
+            `;
+
+            renderBreakdownTable();
+        }
+
+        function resetBenchmarkToMax() {
+            if (!lastComparison) return;
+            const input = document.getElementById('benchmark-qty');
+            if (input) {
+                input.value = lastComparison.maxQ;
+                renderBreakdownTable();
+            }
+        }
+
+        function renderBreakdownTable() {
+            if (!lastComparison) return;
+            const { sortedOpts, win, maxQ } = lastComparison;
+            const u = currentUnit || 'unit';
+            const input = document.getElementById('benchmark-qty');
+            const rawVal = parseFloat(input ? input.value : maxQ);
+            const targetQ = (!isNaN(rawVal) && rawVal >= 0) ? rawVal : 0;
+
+            const resetBtn = document.getElementById('btn-reset-max');
+            if (resetBtn) {
+                resetBtn.style.display = (targetQ !== maxQ) ? 'inline-block' : 'none';
+            }
+
+            let html = `<table class="res-table">
+                <tr><th>Option</th><th>Tk/${escapeHTML(u)}</th><th>Total Cost</th><th>Money Saved</th></tr>`;
 
             sortedOpts.forEach(o => {
                 const isW = o.i === win.i;
-                const cMax = o.cost * maxQ;
-                const wMax = win.cost * maxQ;
+                const cTarget = o.cost * targetQ;
+                const wTarget = win.cost * targetQ;
                 html += `<tr class="${isW ? 'win-row' : ''}">
                     <td>Option ${o.i} ${isW ? '🏆' : ''}</td>
                     <td>${o.cost.toFixed(4)}</td>
-                    <td>${cMax.toFixed(2)} Tk</td>
-                    <td>${isW ? 'Best Value' : `<span class="save-txt">Saved ${(cMax - wMax).toFixed(2)} Tk</span>`}</td>
+                    <td>${cTarget.toFixed(2)} Tk</td>
+                    <td>${isW ? 'Best Value' : `<span class="save-txt">Saved ${(cTarget - wTarget).toFixed(2)} Tk</span>`}</td>
                 </tr>`;
             });
 
-            box.style.display = 'block';
-            box.innerHTML = html + '</table>' + statusNote;
+            document.getElementById('breakdown-table-wrapper').innerHTML = html + '</table>';
         }
 
         function buildSavingsSummary(item) {
@@ -449,3 +501,4 @@
     </script>
 </body>
 </html>
+
